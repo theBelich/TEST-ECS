@@ -12,7 +12,6 @@ public class SpawnerMono : MonoBehaviour
     public GameObject allyToSpawn;
     public GameObject enemyToSpawn;
     public float spawnrate;
-    public bool isEnemySpawner;
     public List<Transform> enemyPositions;
     public List<Transform> allyPositions;
     public SpawnerSetting spawnPositions;
@@ -48,7 +47,6 @@ public class SpawnBaker : Baker<SpawnerMono>
             allyToSpawn = GetEntity(authoring.allyToSpawn, TransformUsageFlags.Dynamic),
             enemyToSpawn = GetEntity(authoring.enemyToSpawn, TransformUsageFlags.Dynamic),
             spawnrate = authoring.spawnrate,
-            isEnemySpawner = authoring.isEnemySpawner,
             isAllAllySpawned = false,
             isFinishedSpawn = false,
             enemyReference = SetSpawnPointsRef(authoring.spawnPositions.enemyPositions),

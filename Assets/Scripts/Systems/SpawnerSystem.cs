@@ -32,9 +32,6 @@ public partial struct SpawnerSystem : ISystem
         //var spawner = SystemAPI.GetAspect<SpawnerAspect>(spawnerProperty);
         var spawner = SystemAPI.GetAspect<SpawnerAspect>(SystemAPI.GetSingletonEntity<SpawnerProperties>());
 
-        var navigation = SystemAPI.GetSingletonEntity<NavigationProperties>();
-        var navigationAspect = SystemAPI.GetAspect<NavigationAspect>(navigation);
-
 
         spawner.spawnTimer -= Time.deltaTime;
 
@@ -43,7 +40,7 @@ public partial struct SpawnerSystem : ISystem
             return;
         }
 
-        SpawnAlly(spawner, ecb, navigationAspect);
+        SpawnAlly(spawner, ecb);
 
         spawner.spawnTimer = spawner.spawnRate;
 
@@ -60,7 +57,7 @@ public partial struct SpawnerSystem : ISystem
         var enemy = ecb.Instantiate(spawner.enemyToSpawn);
         var pos = spawner.GetEnemySpawnPosition(i);
         ecb.AddComponent(enemy, new UnitProperty { transform = pos});
-        ecb.AddComponent(enemy, new EnemyTag());
+        ecb.AddComponent(enemy, new EnemyTag() { enemy = enemy} );
         i++;
        
 
@@ -71,7 +68,7 @@ public partial struct SpawnerSystem : ISystem
     }
 
     [BurstCompile]
-    private void SpawnAlly(SpawnerAspect spawnerAspect, EntityCommandBuffer ecb, NavigationAspect navigationAspect)
+    private void SpawnAlly(SpawnerAspect spawnerAspect, EntityCommandBuffer ecb)
     {
 
         if (spawnerAspect.isAllAllySpawned)
@@ -83,13 +80,6 @@ public partial struct SpawnerSystem : ISystem
 
         //spawnerAspect.isAllAllySpawned = true;
 
-        var builder = new BlobBuilder(Allocator.Temp);
-
-        ref BlobAllies zombieSpawnPoints = ref builder.ConstructRoot<BlobAllies>();
-
-        int tombstonesCount = spawnerAspect.allySpawnPositions.Value.positions.Length;
-        BlobBuilderArray<Entity> arrayBuilder = builder.Allocate(ref zombieSpawnPoints.allyEntities, tombstonesCount);
-
         for (int i = 0; i < spawnerAspect.allySpawnPositions.Value.positions.Length; i++)
         {
             if (!spawnerAspect.allySpawnPositions.Value.positions[i].isEmpty)
@@ -99,15 +89,7 @@ public partial struct SpawnerSystem : ISystem
                 var pos = spawnerAspect.GetAllySpawnPosition(i);
 
                 ecb.SetComponent(ally, pos);
-
-
-                arrayBuilder[i] = ally;
             }
         }
-
-        var result = builder.CreateBlobAssetReference<BlobAllies>(Allocator.Persistent);
-
-        navigationAspect.blobAllies = result;
-
     }
 }

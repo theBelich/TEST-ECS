@@ -5,5 +5,5 @@ using UnityEngine;
 
 public struct EnemyTag : IComponentData
 {
-    
+    public Entity enemy;
 }

@@ -9,7 +9,6 @@ public struct SpawnerProperties : IComponentData
 
     public Entity entity;
 
-    public bool isEnemySpawner;
     public bool isFinishedSpawn;
 
     public bool isAllAllySpawned;
