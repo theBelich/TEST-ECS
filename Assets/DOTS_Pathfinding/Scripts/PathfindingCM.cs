@@ -20,8 +20,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Burst;
 using CodeMonkey.Utils;
-
-public class Pathfinding : ComponentSystem {
+public partial class PathfindingCM : SystemBase {
 
     private const int MOVE_STRAIGHT_COST = 10;
     private const int MOVE_DIAGONAL_COST = 14;
@@ -36,11 +35,15 @@ public class Pathfinding : ComponentSystem {
         
         NativeArray<PathNode> pathNodeArray = GetPathNodeArray();
 
-        Entities.ForEach((Entity entity, ref PathfindingParams pathfindingParams) => {
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+        Entities.ForEach((Entity entity, ref PathfindingParams pathfindingParams) =>
+        {
 
             NativeArray<PathNode> tmpPathNodeArray = new NativeArray<PathNode>(pathNodeArray, Allocator.TempJob);
 
-            FindPathJob findPathJob = new FindPathJob {
+            FindPathJob findPathJob = new FindPathJob
+            {
                 gridSize = gridSize,
                 pathNodeArray = tmpPathNodeArray,
                 startPosition = pathfindingParams.startPosition,
@@ -50,20 +53,24 @@ public class Pathfinding : ComponentSystem {
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
 
-            PostUpdateCommands.RemoveComponent<PathfindingParams>(entity);
-        });
+            ecb.RemoveComponent<PathfindingParams>(entity);
+        }).WithoutBurst().Run();
 
-        JobHandle.CompleteAll(jobHandleList);
-
-        foreach (FindPathJob findPathJob in findPathJobList) {
-            new SetBufferPathJob {
-                entity = findPathJob.entity,
-                gridSize = findPathJob.gridSize,
-                pathNodeArray = findPathJob.pathNodeArray,
-                pathfindingParamsComponentDataFromEntity = GetComponentDataFromEntity<PathfindingParams>(),
-                pathFollowComponentDataFromEntity = GetComponentDataFromEntity<PathFollow>(),
-                pathPositionBufferFromEntity = GetBufferFromEntity<PathPosition>(),
-            }.Run();
+        JobHandle.CompleteAll(jobHandleList.AsArray());
+        if (Input.GetMouseButtonDown(0))
+        {
+            foreach (FindPathJob findPathJob in findPathJobList)
+            {
+                new SetBufferPathJob
+                {
+                    entity = findPathJob.entity,
+                    gridSize = findPathJob.gridSize,
+                    pathNodeArray = findPathJob.pathNodeArray,
+                    pathfindingParamsComponentDataFromEntity = GetComponentLookup<PathfindingParams>(),
+                    pathFollowComponentDataFromEntity = GetComponentLookup<PathFollow>(),
+                    pathPositionBufferFromEntity = GetBufferLookup<PathPosition>(),
+                }.Run();
+            }
         }
 
         pathNodeArray.Dispose();
@@ -93,7 +100,13 @@ public class Pathfinding : ComponentSystem {
 
         return pathNodeArray;
     }
-	
+
+    public void UpdatePathFollow(PathFollow pathFollow, int length)
+    {
+        pathFollow = new PathFollow { pathIndex = length - 1 };
+    }
+
+
 
     [BurstCompile]
     private struct SetBufferPathJob : IJob {
@@ -116,15 +129,19 @@ public class Pathfinding : ComponentSystem {
             PathfindingParams pathfindingParams = pathfindingParamsComponentDataFromEntity[entity];
             int endNodeIndex = CalculateIndex(pathfindingParams.endPosition.x, pathfindingParams.endPosition.y, gridSize.x);
             PathNode endNode = pathNodeArray[endNodeIndex];
-            if (endNode.cameFromNodeIndex == -1) {
+            if (endNode.cameFromNodeIndex == -1)
+            {
                 // Didn't find a path!
                 //Debug.Log("Didn't find a path!");
                 pathFollowComponentDataFromEntity[entity] = new PathFollow { pathIndex = -1 };
-            } else {
+            }
+            else
+            {
                 // Found a path
                 CalculatePath(pathNodeArray, endNode, pathPositionBuffer);
-                
+
                 pathFollowComponentDataFromEntity[entity] = new PathFollow { pathIndex = pathPositionBuffer.Length - 1 };
+
             }
 
         }
@@ -265,8 +282,10 @@ public class Pathfinding : ComponentSystem {
 
             PathNode currentNode = endNode;
             while (currentNode.cameFromNodeIndex != -1) {
+                
                 PathNode cameFromNode = pathNodeArray[currentNode.cameFromNodeIndex];
                 pathPositionBuffer.Add(new PathPosition { position = new int2(cameFromNode.x, cameFromNode.y) });
+                Debug.LogWarning(new int2(cameFromNode.x, cameFromNode.y));
                 currentNode = cameFromNode;
             }
         }

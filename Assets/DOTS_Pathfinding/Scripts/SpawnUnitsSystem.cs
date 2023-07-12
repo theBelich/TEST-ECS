@@ -2,8 +2,11 @@
 using Unity.Entities;
 using Unity.Transforms;
 using Unity.Mathematics;
+using static UnityEngine.EventSystems.EventTrigger;
 
-public class SpawnUnitsSystem : ComponentSystem {
+
+[UpdateAfter(typeof(PathfindingCM))]
+public partial class SpawnUnitsSystem : SystemBase {
 
     private Unity.Mathematics.Random random;
     private int gridWidth;
@@ -25,18 +28,33 @@ public class SpawnUnitsSystem : ComponentSystem {
         }
 
         if (Input.GetKeyDown(KeyCode.Space)) {
-            SpawnUnits(500);
+            SpawnUnits(100);
         }
     }
 
+    
+
     private void SpawnUnits(int spawnCount) {
-        PrefabEntityComponent prefabEntityComponent = GetSingleton<PrefabEntityComponent>();
+        PrefabEntityComponent prefabEntityComponent = SystemAPI.GetSingleton<PrefabEntityComponent>();
+
+        var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+
+        var rand = SystemAPI.GetAspect<RandomizeLocationAspect>(SystemAPI.GetSingletonEntity< PrefabEntityComponent>());
 
         for (int i = 0; i < spawnCount; i++) {
-            Entity spawnedEntity = EntityManager.Instantiate(prefabEntityComponent.prefabEntity);
-            //EntityManager.SetComponentData(spawnedEntity, new Translation { Value = new float3(random.NextInt(gridWidth), random.NextInt(gridHeight), 0f) });
-            EntityManager.SetComponentData(spawnedEntity, new Translation { Value = new float3(0, 0, 0) });
+            var entity = ecb.Instantiate(prefabEntityComponent.prefabEntity);
+
+
+            var pos = rand.GetRandomLocalTransform();
+
+            ecb.AddComponent(entity, pos);
+
+            //ecb.Playback(EntityManager);
+            //Entity spawnedEntity = EntityManager.Instantiate(prefabEntityComponent.prefabEntity);
+            //EntityManager.SetComponentData(spawnedEntity, new LocalTransform { Position = new float3(random.NextInt(gridWidth), random.NextInt(gridHeight), 0f) });
+            //EntityManager.SetComponentData(spawnedEntity, new LocalTransform { Position = new float3(0, 0, 0) });
         }
+        ecb.Playback(EntityManager);
     }
 
 }

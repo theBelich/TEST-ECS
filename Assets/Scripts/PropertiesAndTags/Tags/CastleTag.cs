@@ -6,4 +6,5 @@ using Unity.Transforms;
 
 public struct CastleTag : IComponentData
 {
+
 }

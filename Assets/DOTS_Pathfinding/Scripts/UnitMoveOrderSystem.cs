@@ -4,40 +4,48 @@ using Unity.Transforms;
 using Unity.Mathematics;
 using CodeMonkey.Utils;
 
-public class UnitMoveOrderSystem : ComponentSystem {
+public partial class UnitMoveOrderSystem : SystemBase {
+
+    protected override void OnStartRunning()
+    {
+        
+    }
 
     protected override void OnUpdate() {
+
         if (Input.GetMouseButtonDown(0)) {
-	        Vector3 mousePosition = UtilsClass.GetMouseWorldPosition();
+            var castleEntity = SystemAPI.GetSingletonEntity<CastleTag>();
+            var transforms = SystemAPI.GetComponentLookup<LocalTransform>();
 
-	        float cellSize = PathfindingGridSetup.Instance.pathfindingGrid.GetCellSize();
+            float3 pos = transforms[castleEntity].Position;
 
-	        PathfindingGridSetup.Instance.pathfindingGrid.GetXY(mousePosition + new Vector3(1, 1) * cellSize * +.5f, out int endX, out int endY);
-	
-	        ValidateGridPosition(ref endX, ref endY);
-	        //CMDebug.TextPopupMouse(x + ", " + y);
+            var positionV3 = new Vector3(pos.x, pos.y, pos.z);
 
-	        Entities.ForEach((Entity entity, DynamicBuffer<PathPosition> pathPositionBuffer, ref Translation translation) => {
-		        //Debug.Log("Add Component!");
-		        PathfindingGridSetup.Instance.pathfindingGrid.GetXY(translation.Value + new float3(1, 1, 0) * cellSize * +.5f, out int startX, out int startY);
+            float cellSize = PathfindingGridSetup.Instance.pathfindingGrid.GetCellSize();
 
-		        ValidateGridPosition(ref startX, ref startY);
+            var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
 
-		        EntityManager.AddComponentData(entity, new PathfindingParams { 
-			        startPosition = new int2(startX, startY), 
-                    endPosition = new int2(endX, endY) 
-		        });
-	        });
+            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(positionV3 + new Vector3(1, 1) * cellSize * +.5f, out int endX, out int endY);
 
-            /*
-            Entities.ForEach((Entity entity, ref Translation translation) => {
-                // Add Pathfinding Params
-                EntityManager.AddComponentData(entity, new PathfindingParams {
-                    startPosition = new int2(0, 0),
-                    endPosition = new int2(4, 0)
+
+            ValidateGridPosition(ref endX, ref endY);
+            //CMDebug.TextPopupMouse(x + ", " + y);
+
+            Entities.ForEach((Entity entity, DynamicBuffer<PathPosition> pathPositionBuffer, ref LocalTransform translation) => {
+                //		        Debug.LogWarning("Add Component!");
+                PathfindingGridSetup.Instance.pathfindingGrid.GetXY(translation.Position + new float3(1, 1, 0) * cellSize * +.5f, out int startX, out int startY);
+
+                ValidateGridPosition(ref startX, ref startY);
+
+                ecb.AddComponent(entity, new PathfindingParams
+                {
+                    startPosition = new int2(startX, startY),
+                    endPosition = new int2(endX, endY)
                 });
-            });
-            */
+            }).WithoutBurst().Run();
+
+
+            ecb.Playback(EntityManager);
         }
     }
 

@@ -24,11 +24,9 @@ public class PathfindingGridSetup : MonoBehaviour {
     [SerializeField] private PathfindingVisual pathfindingVisual;
     public Grid<GridNode> pathfindingGrid;
 
-    private void Awake() {
-        Instance = this;
-    }
-
     private void Start() {
+        Instance = this;
+
         pathfindingGrid = new Grid<GridNode>(30, 15, 1f, Vector3.zero, (Grid<GridNode> grid, int x, int y) => new GridNode(grid, x, y));
 
         pathfindingGrid.GetGridObject(2, 0).SetIsWalkable(false);
