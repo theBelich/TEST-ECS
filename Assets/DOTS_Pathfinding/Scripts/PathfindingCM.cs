@@ -285,7 +285,6 @@ public partial class PathfindingCM : SystemBase {
                 
                 PathNode cameFromNode = pathNodeArray[currentNode.cameFromNodeIndex];
                 pathPositionBuffer.Add(new PathPosition { position = new int2(cameFromNode.x, cameFromNode.y) });
-                Debug.LogWarning(new int2(cameFromNode.x, cameFromNode.y));
                 currentNode = cameFromNode;
             }
         }

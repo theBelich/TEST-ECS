@@ -7,6 +7,7 @@ public readonly partial struct PathFollowAspect : IAspect
 {
     public readonly RefRW<LocalTransform> translation;
     public readonly RefRW<PathFollow> pathFollow;
+    public readonly RefRW<PathfindingParams> pathfindingParams;
 
     public int index => pathFollow.ValueRO.pathIndex;
 
@@ -23,6 +24,7 @@ public readonly partial struct PathFollowAspect : IAspect
         {
             // Next waypoint
             pathPositionBuffer.RemoveAt(index);
+            pathfindingParams.ValueRW.startPosition = pathPosition.position;
             pathFollow.ValueRW.pathIndex--;
         }
     }
