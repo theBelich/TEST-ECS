@@ -22,12 +22,14 @@ public class PathfindingGridSetup : MonoBehaviour {
     public static PathfindingGridSetup Instance { private set; get; }
 
     [SerializeField] private PathfindingVisual pathfindingVisual;
+    [SerializeField] private int width;
+    [SerializeField] private int height;
     public Grid<GridNode> pathfindingGrid;
 
     private void Start() {
         Instance = this;
 
-        pathfindingGrid = new Grid<GridNode>(30, 15, 1f, Vector3.zero, (Grid<GridNode> grid, int x, int y) => new GridNode(grid, x, y));
+        pathfindingGrid = new Grid<GridNode>(width, height, 1f, Vector3.zero, (Grid<GridNode> grid, int x, int y) => new GridNode(grid, x, y));
 
         pathfindingGrid.GetGridObject(2, 0).SetIsWalkable(false);
 
@@ -41,6 +43,16 @@ public class PathfindingGridSetup : MonoBehaviour {
             if (gridNode != null) {
                 gridNode.SetIsWalkable(!gridNode.IsWalkable());
             }
+        }
+    }
+
+    public void BlockCell(Vector3 worldPosition)
+    {
+        Vector3 pos = worldPosition + (new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f);
+        GridNode node = pathfindingGrid.GetGridObject(pos);
+        if (node != null)
+        {
+            node.SetIsWalkable(!node.IsWalkable());
         }
     }
 

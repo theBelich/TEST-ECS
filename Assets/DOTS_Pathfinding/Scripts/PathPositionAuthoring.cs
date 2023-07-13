@@ -14,5 +14,6 @@ public class PathPositionAuthoringBaker : Baker<PathPositionAuthoring>
 
         AddBuffer<PathPosition>(entity);
         AddComponent(entity, new NavTag() { entity = entity});
+        AddComponent(entity, new UnitProperty() { name = authoring.name});
     }
 }

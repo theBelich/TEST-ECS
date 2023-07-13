@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using Unity.Transforms;
+using Unity.Collections;
 
 public struct UnitProperty : IComponentData
 {
-    public LocalTransform transform;
+    public FixedString128Bytes targetName;
+    public FixedString128Bytes name;
 }

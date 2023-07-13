@@ -57,7 +57,7 @@ public partial class PathfindingCM : SystemBase {
         }).WithoutBurst().Run();
 
         JobHandle.CompleteAll(jobHandleList.AsArray());
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) || Input.GetKey(KeyCode.W))
         {
             foreach (FindPathJob findPathJob in findPathJobList)
             {

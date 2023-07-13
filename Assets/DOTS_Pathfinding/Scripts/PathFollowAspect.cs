@@ -24,8 +24,8 @@ public readonly partial struct PathFollowAspect : IAspect
         {
             // Next waypoint
             pathPositionBuffer.RemoveAt(index);
-            pathfindingParams.ValueRW.startPosition = pathPosition.position;
             pathFollow.ValueRW.pathIndex--;
+            pathfindingParams.ValueRW.startPosition = pathPosition.position;
         }
     }
 }

@@ -8,11 +8,13 @@ public partial class PathFollowSystem : SystemBase {
 
     private Unity.Mathematics.Random random;
 
+
+
     protected override void OnUpdate()
     {
         float deltaTime = SystemAPI.Time.DeltaTime;
 
-        foreach (var pathFollower in SystemAPI.Query<NavTag>())
+        foreach (var pathFollower in SystemAPI.Query<NavTag>().WithAll<PathfindingParams>())
         {
             var aspect = SystemAPI.GetAspect<PathFollowAspect>(pathFollower.entity);
 
