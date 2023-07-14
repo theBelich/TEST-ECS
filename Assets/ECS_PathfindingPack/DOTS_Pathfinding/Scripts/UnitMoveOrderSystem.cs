@@ -155,8 +155,6 @@ public partial class UnitMoveOrderSystem : SystemBase
 
     private float3 GetPosition(UnitProperty unitProperty)
     {
-        Debug.LogWarning(positions.Find(x => x.name == unitProperty.targetName).position);
-
         return positions.Find(x => x.name == unitProperty.targetName).position;
     }
 
